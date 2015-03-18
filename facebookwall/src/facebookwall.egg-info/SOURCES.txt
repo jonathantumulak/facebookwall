@@ -1,0 +1,7 @@
+README
+setup.py
+src/facebookwall.egg-info/PKG-INFO
+src/facebookwall.egg-info/SOURCES.txt
+src/facebookwall.egg-info/dependency_links.txt
+src/facebookwall.egg-info/requires.txt
+src/facebookwall.egg-info/top_level.txt
