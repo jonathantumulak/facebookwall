@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% load wall_filter %}
+
+{% block content %}
+
+<link rel="stylesheet" type="text/css" href="{{static}}/static/wall/index.css" />
+
+<div id="header" class="container">
+    <div class="col-md-8">
+        <h1>The Facebook</h1>
+    </div>
+
+    <div id="username" class="col-md-4">
+        <div>Hi! {{ user.first_name }} </div>
+         <a href='/logout'>Log out</a>
+    </div>
+</div>
+
+<div id="message_box" class="container">
+    <form action="" class="" method="post">{% csrf_token %}
+        {{ form }}
+        <button class="btn btn-primary" type="submit">Post</button>
+    </form>
+</div>
+
+{% if latest_wall_updates %}
+    {% for update in latest_wall_updates %}
+        <div class="panel panel-default"><a href="{% url 'wall:detail' update.id %}">{{ update.message }} - {{ update.author }}</a>
+        <div>{{ update.liked.count }}</div>
+            {% if update.liked|is_liked:user.id %}
+                <div>You liked this</div>
+            {% else %}
+                <form action="/wall/like_status/" class="" method="post">{% csrf_token %}
+                    <input id="id_status_id" name="status_id" type="hidden" value="{{ update.id }}"/>
+                    <button type="submit">Like</button>
+                </form>
+            {% endif %}
+        {% if user == update.author %}
+            <form action="/wall/delete_status/" class="" method="post">{% csrf_token %}
+                <input id="id_status_id" name="status_id" type="hidden" value="{{ update.id }}"/>
+                <button type="submit">Delete</button>
+            </form>
+        {% endif %}
+        </div>
+    {% endfor %}
+{% else %}
+    <p>No status are available.</p>
+{% endif %}
+
+{% endblock %}

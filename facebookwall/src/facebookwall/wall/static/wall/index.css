@@ -1,0 +1,22 @@
+body {
+  background-color: #e9eaed;
+}
+
+#username {
+    padding-top: 15px;
+    text-align: center;
+}
+
+#username a:visited,
+#username a:link {
+    color: white;
+}
+
+#header {
+    background-color: #3a5795;
+    color: white;
+}
+
+#message_box {
+    padding: 30px;
+}

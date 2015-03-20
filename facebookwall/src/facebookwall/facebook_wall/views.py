@@ -5,31 +5,24 @@ from django.template import RequestContext
 from django.http import HttpResponseRedirect
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
+from wall.forms import UserCreateForm
 
 
 def index(request):
     if request.user.is_authenticated():
-        return HttpResponseRedirect('/logged_in')
+        return HttpResponseRedirect('/wall/')
     else:
         return HttpResponseRedirect('/login')
 
 
-@login_required
-def logged_in(request):
-    return render_to_response(
-        'logged_in.html',
-        context_instance=RequestContext(request)
-    )
-
-
 def register(request):
     if request.method == 'POST':
-        form = UserCreationForm(request.POST)
+        form = UserCreateForm(request.POST)
         if form.is_valid():
             new_user = form.save()
             return HttpResponseRedirect("/login/")
     else:
-            form = UserCreationForm()
+            form = UserCreateForm()
 
     return render(request, "register.html", {
         'form': form,
