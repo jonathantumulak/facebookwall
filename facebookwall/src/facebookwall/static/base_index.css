@@ -1,0 +1,27 @@
+body {
+  background-color: #e9eaed;
+}
+
+#username {
+    padding-top: 15px;
+    text-align: center;
+}
+
+#username a:visited,
+#username a:link {
+    color: white;
+}
+
+#header {
+    background-color: #3a5795;
+    color: white;
+}
+
+#home a:visited,
+#home a:link {
+    color: white;
+}
+
+#home a:hover {
+    text-decoration: none;
+}

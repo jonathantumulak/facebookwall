@@ -1,66 +1,68 @@
-{% extends 'base.html' %}
+{% extends 'base_index.html' %}
 
 {% load wall_filter %}
 
 {% block content %}
-<div>Hi! {{ user.username }}</div>
-<a href='/logout'>Log out</a>
 
-<h1>{{ status.message }}</h1>
-
-<div>{{ status.author }}</div>
-
-<div>{{ status.pub_date }}</div>
-
-<div>{{ update.liked.count }}</div>
-    {% if status.liked|is_liked:user.id %}
-        <div>You liked this</div>
-    {% else %}
-        <form action="/wall/like_status/" class="" method="post">{% csrf_token %}
-            <input id="id_status_id" name="status_id" type="hidden" value="{{ status.id }}"/>
-            <button type="submit">Like</button>
-        </form>
-    {% endif %}
-
-    {% if user == status.author %}
-        <form action="/wall/delete_status/" class="" method="post">{% csrf_token %}
-            <input id="id_status_id" name="status_id" type="hidden" value="{{ status.id }}"/>
-            <button type="submit">Delete</button>
-        </form>
-    {% endif %}
+<div class="panel panel-default">
+    <div class="panel-body">
+        <h4>{{ status.author.first_name }}  {{ status.author.last_name }}</h4>
+        <p>{{ status.message }}</p>
+        <div class="container-fluid"><a href="{% url 'wall:detail' status.id %}">{{ status.pub_date }}</a></div>
+        {% if status.liked.count %}
+            <div class="container-fluid">{{ status.liked.count }} liked this.</div>
+        {% endif %}
+        {% if status.liked|is_liked:user.id %}
+            <div class="container-fluid">You liked this</div>
+        {% else %}
+            <form action="/wall/like_status/" class="" method="post">{% csrf_token %}
+                <input id="id_status_id" name="status_id" type="hidden" value="{{ status.id }}"/>
+                <button type="submit" class="btn btn-default">Like</button>
+            </form>
+        {% endif %}
+        {% if user == status.author %}
+            <form action="/wall/delete_status/" class="" method="post">{% csrf_token %}
+                <input id="id_status_id" name="status_id" type="hidden" value="{{ status.id }}"/>
+                <button type="submit" class="btn btn-default">Delete</button>
+            </form>
+        {% endif %}
+    </div>
+</div>
 
 <h4>Comments</h4>
 
-{% for reply in status.replies.all %}
-    <div class="panel panel-default">
-        <h5>{{ reply.message }}</h5>
+<div class="well">
+    {% for reply in status.replies.all %}
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <h4>{{ reply.author.first_name }}  {{ reply.author.last_name }}</h4>
+                <p>{{ reply.message }}</p>
+                <div class="container-fluid"><a href="{% url 'wall:detail' reply.id %}">{{ reply.pub_date }}</a></div>
+                {% if reply.liked.count %}
+                    <div class="container-fluid">{{ reply.liked.count }} liked this.</div>
+                {% endif %}
+                {% if reply.liked|is_liked:user.id %}
+                    <div class="container-fluid">You liked this</div>
+                {% else %}
+                    <form action="/wall/like_status/" class="" method="post">{% csrf_token %}
+                        <input id="id_status_id" name="status_id" type="hidden" value="{{ reply.id }}"/>
+                        <button type="submit" class="btn btn-default">Like</button>
+                    </form>
+                {% endif %}
+                {% if user == reply.author %}
+                    <form action="/wall/delete_status/" class="" method="post">{% csrf_token %}
+                        <input id="id_status_id" name="status_id" type="hidden" value="{{ reply.id }}"/>
+                        <button type="submit" class="btn btn-default">Delete</button>
+                    </form>
+                {% endif %}
+            </div>
+        </div>
+    {% endfor %}
 
-        <div>{{ reply.author }}</div>
-
-        <div>{{ reply.pub_date }}</div>
-
-        <div>{{ reply.liked.count }}</div>
-            {% if reply.liked|is_liked:user.id %}
-                <div>You liked this</div>
-            {% else %}
-                <form action="/wall/like_status/" class="" method="post">{% csrf_token %}
-                    <input id="id_status_id" name="status_id" type="hidden" value="{{ reply.id }}"/>
-                    <button type="submit">Like</button>
-                </form>
-            {% endif %}
-        
-        {% if user == reply.author %}
-        <form action="/wall/delete_status/" class="" method="post">{% csrf_token %}
-            <input name="status_id" type="hidden" value="{{ reply.id }}"/>
-            <button type="submit">Delete</button>
-        </form>
-    {% endif %}
-    </div>
-{% endfor %}
-
-<form action="" class="" method="post">{% csrf_token %}
-    {{ form }}
-    <button class="btn btn-primary" type="submit">Reply</button>
-</form>
+    <form action="" class="" method="post">{% csrf_token %}
+        {{ form }}
+        <button class="btn btn-primary" type="submit">Reply</button>
+    </form>
+</div>
 
 {% endblock %}

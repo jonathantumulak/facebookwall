@@ -7,8 +7,16 @@ from django.utils import timezone
 from django.contrib.auth.decorators import login_required
 from wall.forms import StatusForm, PostStatusForm, PostReplyForm
 from django.views.generic.edit import FormMixin
+from django.utils.decorators import method_decorator
 
 # Create your views here.
+
+
+def class_view_decorator(function_decorator):
+    def simple_decorator(View):
+        View.dispatch = method_decorator(function_decorator)(View.dispatch)
+        return View
+    return simple_decorator
 
 
 def delete_status(request):
@@ -31,20 +39,22 @@ def like_status(request):
     return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
 
 
+@class_view_decorator(login_required)
 class IndexView(generic.ListView, FormMixin):
     model = Status
     template_name = 'wall/index.html'
     context_object_name = 'latest_wall_updates'
+    paginate_by = 5
 
-    def get(self, request, *args, **kwargs):
-        form_class = self.get_form_class()
-        self.form = self.get_form(form_class)
+    # def get(self, request, *args, **kwargs):
+    #     form_class = self.get_form_class()
+    #     self.form = self.get_form(form_class)
 
-        self.object_list = self.get_queryset()
+    #     self.object_list = self.get_queryset()
 
-        context = self.get_context_data(object_list=self.object_list,
-                                        form=self.form)
-        return self.render_to_response(context)
+    #     context = self.get_context_data(object_list=self.object_list,
+    #                                     form=self.form)
+    #     return self.render_to_response(context)
 
     def post(self, request, *args, **kwargs):
         self.form = PostStatusForm(self.request.user, self.request.POST)
@@ -61,6 +71,9 @@ class IndexView(generic.ListView, FormMixin):
     def get_context_data(self, **kwargs):
         context = super(IndexView, self).get_context_data(**kwargs)
         context['user'] = self.request.user.get_username()
+        form_class = self.get_form_class()
+        form = self.get_form(form_class)
+        context['form'] = form
         return context
 
 
@@ -69,6 +82,7 @@ class MyIndexView(IndexView):
     model = Status
 
 
+@class_view_decorator(login_required)
 class DetailView(generic.DetailView, FormMixin):
     model = Status
     template_name = 'wall/detail.html'

@@ -16,5 +16,4 @@ urlpatterns = patterns(
         {'template_name': 'logout.html'}),
     url(r'^register/$', 'facebook_wall.views.register'),
     url(r'^wall/', include('wall.urls', namespace="wall")),
-    # url(r'^notfacebook/', include('notfacebook.urls', namespace="notfacebook")),
 )

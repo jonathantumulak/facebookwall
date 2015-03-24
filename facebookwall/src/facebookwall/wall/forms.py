@@ -11,6 +11,12 @@ class StatusForm(ModelForm):
         model = Status
         exclude = ['author', 'pub_date', 'in_reply_to']
 
+    def __init__(self, *args, **kwargs):
+        super(StatusForm, self).__init__(*args, **kwargs)
+        self.fields['message'].widget.attrs.update({
+                'class': 'form-control'
+            })
+
 
 class PostStatusForm(StatusForm):
     def __init__(self, user, *args, **kwargs):

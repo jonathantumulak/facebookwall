@@ -1,0 +1,35 @@
+
+{% load i18n %}
+{% load staticfiles %}
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="{{ LANGUAGE_CODE|default:"en-us" }}" xml:lang="{{ LANGUAGE_CODE|default:"en-us" }}" {% if LANGUAGE_BIDI %}dir="rtl"{% endif %}>
+<head>
+<title>{% block title %}{% endblock %}</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="utf-8">
+{% block extrameta %}{% endblock %}
+
+<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}bootstrap/css/bootstrap.css" />
+{% block extrastyle %}{% endblock %}
+
+</head>
+<body class="{% block bodyclass %}{% endblock %}">
+    <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}/base_index.css" />
+
+    <div id="header" class="container">
+        <div id="home" class="col-md-8">
+            <a href="/"><h1>The Facebook</h1></a>
+        </div>
+
+        <div id="username" class="col-md-4">
+            <div>Hi! {{ user.first_name }} </div>
+             <a href='/logout'>Log out</a>
+        </div>
+    </div>
+  <div class="container">
+    {% block content %}
+    {% endblock %}
+<footer></footer>
+</div>
+</body>
