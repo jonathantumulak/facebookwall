@@ -2,8 +2,15 @@
 
 {% load wall_filter %}
 
-{% block content %}
+{% block title %}
+The Facebook
+{% endblock %}
+
+{% block extrastyle %}
 <link rel="stylesheet" type="text/css" href="{{ static }}/static/wall/index.css" />
+{% endblock %}
+
+{% block content %}
 <div id="message-box" class="container-fluid">
     <form action="" class="" method="post">{% csrf_token %}
         {{ form }}
@@ -16,8 +23,10 @@
         <div class="panel panel-default">
             <div class="panel-body">
                 <h4>{{ update.author.first_name }}  {{ update.author.last_name }}</h4>
-                <p>{{ update.message }}</p>
-                <div class="container-fluid"><a href="{% url 'wall:detail' update.id %}">{{ update.pub_date }}</a></div>
+                <div id="edit-container-{{ update.id }}">
+                    <p id="{{ update.id }}">{{ update.message }}</p>
+                </div>
+                <div class="container-fluid"><a id="pub-date" href="{% url 'wall:detail' update.id %}">{{ update.pub_date }}</a></div>
                 {% if update.liked.count %}
                     <div class="container-fluid">{{ update.liked.count }} liked this.</div>
                 {% endif %}
@@ -25,13 +34,14 @@
                     <div class="container-fluid">You liked this</div>
                 {% else %}
                     <form action="/wall/like_status/" class="" method="post">{% csrf_token %}
-                        <input id="id_status_id" name="status_id" type="hidden" value="{{ update.id }}"/>
+                        <input id="like_status_id" name="status_id" type="hidden" value="{{ update.id }}"/>
                         <button type="submit" class="btn btn-default">Like</button>
                     </form>
                 {% endif %}
                 {% if user == update.author %}
+                    <button type="submit" class="btn btn-default edit" value="{{ update.id }}">Edit</button>
                     <form action="/wall/delete_status/" class="" method="post">{% csrf_token %}
-                        <input id="id_status_id" name="status_id" type="hidden" value="{{ update.id }}"/>
+                        <input id="delete_status_id" name="status_id" type="hidden" value="{{ update.id }}"/>
                         <button type="submit" class="btn btn-default">Delete</button>
                     </form>
                 {% endif %}
@@ -57,4 +67,8 @@
     <p>No status are available.</p>
 {% endif %}
 
+{% endblock %}
+
+{% block scripts %}
+<script type="text/javascript" src="{{ static }}/static/wall/application.js"></script>
 {% endblock %}

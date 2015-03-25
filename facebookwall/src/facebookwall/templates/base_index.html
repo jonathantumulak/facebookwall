@@ -10,12 +10,15 @@
 <meta charset="utf-8">
 {% block extrameta %}{% endblock %}
 
-<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}bootstrap/css/bootstrap.css" />
+<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}bootstrap/css/bootstrap.min.css" />
+<script type="text/javascript" src="{{ STATIC_URL }}jquery-1.11.2.min.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}bootstrap/js/bootstrap.min.js"></script>
+<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}/base_index.css" />
+
 {% block extrastyle %}{% endblock %}
 
 </head>
 <body class="{% block bodyclass %}{% endblock %}">
-    <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}/base_index.css" />
 
     <div id="header" class="container">
         <div id="home" class="col-md-8">
@@ -33,3 +36,6 @@
 <footer></footer>
 </div>
 </body>
+
+{% block scripts %}
+{% endblock %}

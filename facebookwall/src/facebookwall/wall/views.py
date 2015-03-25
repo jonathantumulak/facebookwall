@@ -8,6 +8,7 @@ from django.contrib.auth.decorators import login_required
 from wall.forms import StatusForm, PostStatusForm, PostReplyForm
 from django.views.generic.edit import FormMixin
 from django.utils.decorators import method_decorator
+import json
 
 # Create your views here.
 
@@ -21,7 +22,7 @@ def class_view_decorator(function_decorator):
 
 def delete_status(request):
     post = request.POST
-    status = Status.objects.get(pk=post['status_id'])
+    status = get_object_or_404(Status, pk=post['status_id'])
     if status.in_reply_to is None:
         status.delete()
         return HttpResponseRedirect('/wall/')
@@ -33,10 +34,23 @@ def delete_status(request):
 def like_status(request):
     post = request.POST
     user = request.user
-    status = Status.objects.get(pk=post['status_id'])
+    status = get_object_or_404(Status, pk=post['status_id'])
     like = Likes(liked_status=status, liker=user)
     like.save()
     return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+
+
+def edit_status(request, pk=None):
+    post = request.POST
+    status = get_object_or_404(Status, pk=post['status_id'])
+    status.message = post['message']
+    status.save()
+    response_data = {}
+    response_data['result'] = 'Edit saved'
+    return HttpResponse(
+        json.dumps(response_data),
+        content_type="application/json"
+    )
 
 
 @class_view_decorator(login_required)
