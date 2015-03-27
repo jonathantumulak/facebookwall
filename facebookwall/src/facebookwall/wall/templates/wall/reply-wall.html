@@ -1,0 +1,5 @@
+<form action="" id="message-reply-{{ reply_to }}" class="message-reply" method="post">{% csrf_token %}
+        {{ form }}
+        <button class="btn btn-primary" type="submit" value="{{ reply_to }}">Reply</button>
+    </form>
+</div>

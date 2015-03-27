@@ -25,9 +25,11 @@ $(document).ready(function() {
                 return false;
             }
         });
+        console.log($('.post-form'))
 
         $('.post-form').on('submit', function(e){
-            event.preventDefault();
+            e.preventDefault();
+            console.log(this);
             edit_status(this);
             return false
         });
@@ -57,6 +59,66 @@ $(document).ready(function() {
 
     });
 
+    $('.loadreply').click(function() {
+        var btn = this.value;
+        load_replies(btn)
+        this.remove();
+    });
+
+    function load_replies(id) {
+        $.ajax({
+            url : "load_reply/", // the endpoint
+            type : "POST", // http method
+            data : { pk: id }, // data sent with the post request
+
+            // handle a successful response
+            success : function(json) {
+               $('#reply-container-'+id).prepend(json);
+            },
+
+            // handle a non-successful response
+            error : function(xhr,errmsg,err) {
+                $('#reply-container-'+id).append('error in loading...');
+            }
+        });
+    };
+
+
+    $('.comment-container').each(function() {
+        var status_id = this.id
+        $(this).load("load_reply_to_index?in_reply_to="+status_id);
+
+        $(this).ready(function() {
+            $('#message-reply-'+status_id).ready(function() {
+                $(document).on('submit','#message-reply-'+status_id , function(e){
+                    e.preventDefault();
+                    post_reply(this, status_id);
+                    return false
+                });
+
+            });
+        });
+    })
+
+    function post_reply(status, reply_to) {
+        $.ajax({
+            url : "load_reply_to_index/", // the endpoint
+            type : "POST", // http method
+            data : { status_id: reply_to, message : status.message.value }, // data sent with the post request
+
+            // handle a successful response
+            success : function(json) {
+                console.log(json)
+                console.log($('#reply-container-'+reply_to))
+                $('#reply-container-'+reply_to).append(json);
+            },
+
+            // handle a non-successful response
+            error : function(xhr,errmsg,err) {
+    
+            }
+        });
+    };
 });
 
 // This function gets cookie with a given name

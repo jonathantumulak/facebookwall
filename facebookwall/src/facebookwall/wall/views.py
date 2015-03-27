@@ -60,27 +60,18 @@ class IndexView(generic.ListView, FormMixin):
     context_object_name = 'latest_wall_updates'
     paginate_by = 5
 
-    # def get(self, request, *args, **kwargs):
-    #     form_class = self.get_form_class()
-    #     self.form = self.get_form(form_class)
-
-    #     self.object_list = self.get_queryset()
-
-    #     context = self.get_context_data(object_list=self.object_list,
-    #                                     form=self.form)
-    #     return self.render_to_response(context)
-
     def post(self, request, *args, **kwargs):
         self.form = PostStatusForm(self.request.user, self.request.POST)
         if self.form.is_valid():
             self.form.save()
 
-        return self.get(request, *args, **kwargs)
+        # return self.get(request, *args, **kwargs)
+        return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
 
     def get_queryset(self):
         return Status.objects.exclude(
                     in_reply_to__isnull=False
-                ).order_by('-pub_date')[:10]
+                ).order_by('-pub_date')[:5]
 
     def get_context_data(self, **kwargs):
         context = super(IndexView, self).get_context_data(**kwargs)
@@ -116,7 +107,8 @@ class DetailView(generic.DetailView, FormMixin):
         if self.form.is_valid():
             self.form.save()
 
-        return self.get(request, *args, **kwargs)
+        return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+        # return self.get(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super(DetailView, self).get_context_data(**kwargs)
@@ -128,3 +120,58 @@ class DetailView(generic.DetailView, FormMixin):
 class MyDetailView(DetailView):
     form_class = StatusForm
     model = Status
+
+
+class ReplyView(generic.ListView):
+    model = Status
+    template_name = 'wall/reply.html'
+    context_object_name = 'replies'
+    # paginate_by = 2
+
+    def get_queryset(self):
+        return Status.objects.filter(
+                    in_reply_to=self.request_pk
+                ).order_by('pub_date')  # [:2]
+
+    def post(self, request, *args, **kwargs):
+        self.request_pk = request.POST['pk']
+        return super(ReplyView, self).get(request, *args, **kwargs)
+
+
+class ReplyFromIndexView(generic.CreateView):
+    form_class = StatusForm
+    template_name = 'wall/reply-wall.html'
+
+    def get(self, request, *args, **kwargs):
+        self.object = None
+        self.form = self.get_form(self.form_class)
+
+        context = self.get_context_data(form=self.form)
+        return self.render_to_response(context)
+
+    def post(self, request, *args, **kwargs):
+        print self.request.POST
+        self.form = PostReplyForm(self.request.user,
+                                  self.request.POST['status_id'],
+                                  self.request.POST)
+        if self.form.is_valid():
+            status = self.form.save()
+
+        return HttpResponseRedirect('/wall/reply_detail/'+str(status.id))
+
+    def get_context_data(self, **kwargs):
+        context = super(ReplyFromIndexView, self).get_context_data(**kwargs)
+        context['reply_to'] = self.request.GET['in_reply_to']
+
+        return context
+
+
+class ReplyDetail(generic.DetailView):
+    model = Status
+    template_name = 'wall/reply-single.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(ReplyDetail, self).get_context_data(**kwargs)
+        context['user'] = self.request.user
+
+        return context

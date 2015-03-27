@@ -14,7 +14,9 @@ class StatusForm(ModelForm):
     def __init__(self, *args, **kwargs):
         super(StatusForm, self).__init__(*args, **kwargs)
         self.fields['message'].widget.attrs.update({
-                'class': 'form-control'
+                'class': 'form-control',
+                'id': 'message-content',
+                'rows': 2,
             })
 
 

@@ -1,0 +1,33 @@
+{% load wall_filter %}
+{% for reply in replies.all %}
+    <div class="panel panel-default">
+        <div class="panel-body">
+            <div class="clearfix post-info">
+            <img class="pull-left" src="{{ static }}/static/img/default.jpg" alt="Smiley face" height="42" width="42">
+            <div><b>{{ reply.author.first_name }}  {{ reply.author.last_name }}</b></div>
+                <a id="pub-date" href="{% url 'wall:detail' reply.id %}">{{ reply.pub_date }}</a>
+            </div>
+            <div id="edit-container-{{ reply.id }}">
+                <p id="{{ reply.id }}">{{ reply.message }}</p>
+            </div>
+            {% if reply.liked.count %}
+                <div>{{ reply.liked.count }} liked this.</div>
+            {% endif %}
+            {% if reply.liked|is_liked:user.id %}
+                <div>You liked this</div>
+            {% else %}
+                <form action="/wall/like_status/" class="pull-left" method="post">{% csrf_token %}
+                    <input id="id_status_id" name="status_id" type="hidden" value="{{ reply.id }}"/>
+                    <button type="submit" class="btn btn-default">Like</button>
+                </form>
+            {% endif %}
+            {% if user == reply.author %}
+                <button type="submit" class="btn btn-default edit pull-left" value="{{ reply.id }}">Edit</button>
+                <form action="/wall/delete_status/" class="" method="post">{% csrf_token %}
+                    <input id="id_status_id" name="status_id" type="hidden" value="{{ reply.id }}"/>
+                    <button type="submit" class="btn btn-default">Delete</button>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+{% endfor %}

@@ -7,30 +7,34 @@
 {% endblock %}
 
 {% block extrastyle %}
+<link rel="stylesheet" type="text/css" href="{{ static }}/static/wall/detail.css" />
 {% endblock %}
 
 {% block content %}
-
+<div class="container wall-content">
 <div class="panel panel-default">
     <div class="panel-body">
-        <h4>{{ status.author.first_name }}  {{ status.author.last_name }}</h4>
+        <div class="clearfix post-info">
+            <img class="pull-left" src="{{ static }}/static/img/default.jpg" alt="Smiley face" height="42" width="42">
+            <div><b>{{ status.author.first_name }}  {{ status.author.last_name }}</b></div>
+            <a id="pub-date" href="{% url 'wall:detail' status.id %}">{{ status.pub_date }}</a>
+        </div>
         <div id="edit-container-{{ status.id }}">
             <p id="{{ status.id }}">{{ status.message }}</p>
         </div>
-        <div class="container-fluid"><a href="{% url 'wall:detail' status.id %}">{{ status.pub_date }}</a></div>
         {% if status.liked.count %}
-            <div class="container-fluid">{{ status.liked.count }} liked this.</div>
+            <div>{{ status.liked.count }} liked this.</div>
         {% endif %}
         {% if status.liked|is_liked:user.id %}
-            <div class="container-fluid">You liked this</div>
+            <div>You liked this</div>
         {% else %}
-            <form action="/wall/like_status/" class="" method="post">{% csrf_token %}
+            <form action="/wall/like_status/" class="pull-left" method="post">{% csrf_token %}
                 <input id="id_status_id" name="status_id" type="hidden" value="{{ status.id }}"/>
                 <button type="submit" class="btn btn-default">Like</button>
             </form>
         {% endif %}
         {% if user == status.author %}
-            <button type="submit" class="btn btn-default edit" value="{{ status.id }}">Edit</button>
+            <button type="submit" class="btn btn-default edit pull-left" value="{{ status.id }}">Edit</button>
             <form action="/wall/delete_status/" class="" method="post">{% csrf_token %}
                 <input id="id_status_id" name="status_id" type="hidden" value="{{ status.id }}"/>
                 <button type="submit" class="btn btn-default">Delete</button>
@@ -45,24 +49,27 @@
     {% for reply in status.replies.all %}
         <div class="panel panel-default">
             <div class="panel-body">
-                <h4>{{ reply.author.first_name }}  {{ reply.author.last_name }}</h4>
+                <div class="clearfix post-info">
+                <img class="pull-left" src="{{ static }}/static/img/default.jpg" alt="Smiley face" height="42" width="42">
+                <div>{{ reply.author.first_name }}  {{ reply.author.last_name }}</div>
+                    <a id="pub-date" href="{% url 'wall:detail' reply.id %}">{{ reply.pub_date }}</a>
+                </div>
                 <div id="edit-container-{{ reply.id }}">
                     <p id="{{ reply.id }}">{{ reply.message }}</p>
                 </div>
-                <div class="container-fluid"><a href="{% url 'wall:detail' reply.id %}">{{ reply.pub_date }}</a></div>
                 {% if reply.liked.count %}
-                    <div class="container-fluid">{{ reply.liked.count }} liked this.</div>
+                    <div>{{ reply.liked.count }} liked this.</div>
                 {% endif %}
                 {% if reply.liked|is_liked:user.id %}
-                    <div class="container-fluid">You liked this</div>
+                    <div>You liked this</div>
                 {% else %}
-                    <form action="/wall/like_status/" class="" method="post">{% csrf_token %}
+                    <form action="/wall/like_status/" class="pull-left" method="post">{% csrf_token %}
                         <input id="id_status_id" name="status_id" type="hidden" value="{{ reply.id }}"/>
                         <button type="submit" class="btn btn-default">Like</button>
                     </form>
                 {% endif %}
                 {% if user == reply.author %}
-                    <button type="submit" class="btn btn-default edit" value="{{ reply.id }}">Edit</button>
+                    <button type="submit" class="btn btn-default edit pull-left" value="{{ reply.id }}">Edit</button>
                     <form action="/wall/delete_status/" class="" method="post">{% csrf_token %}
                         <input id="id_status_id" name="status_id" type="hidden" value="{{ reply.id }}"/>
                         <button type="submit" class="btn btn-default">Delete</button>
@@ -72,10 +79,11 @@
         </div>
     {% endfor %}
 
-    <form action="" class="" method="post">{% csrf_token %}
+    <form action="" class="message-form" method="post">{% csrf_token %}
         {{ form }}
         <button class="btn btn-primary" type="submit">Reply</button>
     </form>
+</div>
 </div>
 
 {% endblock %}
