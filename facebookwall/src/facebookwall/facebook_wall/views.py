@@ -4,8 +4,9 @@ from django.contrib.auth.decorators import login_required
 from django.template import RequestContext
 from django.http import HttpResponseRedirect
 from django import forms
-from django.contrib.auth.forms import UserCreationForm
 from wall.forms import UserCreateForm
+from django.views import generic
+from wall.models import User
 
 
 def index(request):
@@ -15,15 +16,10 @@ def index(request):
         return HttpResponseRedirect('/login')
 
 
-def register(request):
-    if request.method == 'POST':
-        form = UserCreateForm(request.POST)
-        if form.is_valid():
-            new_user = form.save()
-            return HttpResponseRedirect("/login/")
-    else:
-            form = UserCreateForm()
-
-    return render(request, "register.html", {
-        'form': form,
-        })
+class RegisterView(generic.CreateView):
+    model = User
+    form_class = UserCreateForm
+    fields = ['username', 'email', 'first_name',
+              'last_name', 'password']
+    template_name = 'register.html'
+    success_url = '/login/'

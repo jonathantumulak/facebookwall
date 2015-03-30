@@ -40,6 +40,10 @@ def like_status(request):
     return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
 
 
+# class StatusUpdateView(generic.UpdateView):
+#     form_class = PostReplyForm
+
+
 def edit_status(request, pk=None):
     post = request.POST
     status = get_object_or_404(Status, pk=post['status_id'])
@@ -134,30 +138,24 @@ class ReplyView(generic.ListView):
                 ).order_by('pub_date')  # [:2]
 
     def post(self, request, *args, **kwargs):
-        self.request_pk = request.POST['pk']
-        return super(ReplyView, self).get(request, *args, **kwargs)
+        if request.is_ajax:
+            self.request_pk = request.POST['pk']
+            return super(ReplyView, self).get(request, *args, **kwargs)
 
 
 class ReplyFromIndexView(generic.CreateView):
     form_class = StatusForm
     template_name = 'wall/reply-wall.html'
 
-    def get(self, request, *args, **kwargs):
-        self.object = None
-        self.form = self.get_form(self.form_class)
-
-        context = self.get_context_data(form=self.form)
-        return self.render_to_response(context)
-
     def post(self, request, *args, **kwargs):
-        print self.request.POST
-        self.form = PostReplyForm(self.request.user,
-                                  self.request.POST['status_id'],
-                                  self.request.POST)
-        if self.form.is_valid():
-            status = self.form.save()
+        if request.is_ajax:
+            self.form = PostReplyForm(self.request.user,
+                                      self.request.POST['status_id'],
+                                      self.request.POST)
+            if self.form.is_valid():
+                status = self.form.save()
 
-        return HttpResponseRedirect('/wall/reply_detail/'+str(status.id))
+            return HttpResponseRedirect('/wall/reply_detail/'+str(status.id))
 
     def get_context_data(self, **kwargs):
         context = super(ReplyFromIndexView, self).get_context_data(**kwargs)

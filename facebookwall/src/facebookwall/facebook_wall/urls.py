@@ -2,7 +2,8 @@ from django.conf.urls import patterns, include, url
 from django.contrib import admin
 from django.contrib.auth.views import login, logout
 from django.views.generic.edit import CreateView
-from django.contrib.auth.forms import UserCreationForm
+import views
+# from django.contrib.auth.forms import UserCreationForm
 admin.autodiscover()
 
 urlpatterns = patterns(
@@ -14,6 +15,6 @@ urlpatterns = patterns(
         {'template_name': 'login.html'}),
     url(r'^logout/$', logout,
         {'template_name': 'logout.html'}),
-    url(r'^register/$', 'facebook_wall.views.register'),
+    url(r'^register/$', views.RegisterView.as_view(), name='register'),
     url(r'^wall/', include('wall.urls', namespace="wall")),
 )
