@@ -1,0 +1,11 @@
+<div>Liked by:</div>
+
+<ul class="list-group">
+
+{% for liker in likers.all %}
+
+<li class="list-group-item">{{ liker.liker.first_name }}  {{ liker.liker.last_name }}</li>
+
+{% endfor %}
+
+</ul>

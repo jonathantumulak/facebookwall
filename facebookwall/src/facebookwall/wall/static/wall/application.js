@@ -1,6 +1,26 @@
 $(document).ready(function() {
     action_buttons();
 
+    bindlike($('.like'));
+    bindpopover($('[data-toggle="popover"]'));
+    bindedit($('.edit'));
+
+    //postmessage
+    $('.reply-form').on('submit', function(e) {
+        e.preventDefault();
+        $.post($(this).attr("action"), $(this).serialize(), function(data) {
+            $(data).hide().appendTo('#reply-container').fadeIn('slow');
+            $('#reply-container .panel:last').ready(function() {
+                load_like_info($('#reply-container .panel:last div.like-info').get(0));
+                action_buttons();
+                bindlike($('#reply-container .panel:last .like'));
+                bindpopover($('#reply-container .panel:last a.like-popover'));
+                bindedit($('#reply-container .panel:last .edit'));
+            });
+        });
+        $('form.message-form #message-content').val('');
+    });
+
     //postmessage
     $('.message-form').on('submit', function(e) {
         e.preventDefault();
@@ -8,7 +28,12 @@ $(document).ready(function() {
             $(data).hide().prependTo('.status-container').fadeIn('slow');
             $('.status-container .panel:first').ready(function() {
                 load_message_box($('.status-container .panel:first div.comment-container').get(0));
+                load_like_info($('.status-container .panel:first div.like-info').get(0));
                 action_buttons();
+                $('#no-status').remove();
+                bindlike($('.status-container .panel:first .like'));
+                bindpopover($('.status-container .panel:first a.like-popover'));
+                bindedit($('.status-container .panel:first .edit'));
             });
         });
         $('form.message-form #message-content').val('');
@@ -26,16 +51,78 @@ $(document).ready(function() {
             });
         });
 
-        //like status
-        $('.like').click(function() {
-            var btn = this.value;
-            $.get('like_status/', { pk: btn }, function(data) {
-                $('.like#'+btn+' span').text(data.result)
+        $('.like-info').each(function() {
+            load_like_info(this);
+        });
+    }
+
+    //load replies
+    $('.loadreply').click(function() {
+        var btn = this.value;
+        this.remove();
+        $.get('load_reply/', { pk: btn }, function(data) {
+            $('#reply-container-'+btn).prepend(data);
+            action_buttons();
+            bindpopover($('#reply-container-'+btn+ ' .like-popover'))
+            bindlike($('#reply-container-'+btn+ ' .like'));
+            bindedit($('#reply-container-'+btn+ ' .edit'));
+        });
+    });
+
+    //reply to message
+    $('.comment-container').each(function() {
+        load_message_box(this);
+    });
+
+    function load_like_info(container) {
+        var status_id = container.id
+        $.get("like_info/", { pk: status_id }, function(data) {
+            if (data.like_counts == 0) {
+                $('#'+status_id+'.like-info').html("");
+            } else if (data.like_counts == 1) {
+                if (data.user_liked) {
+                    $('#'+status_id+'.like-info').html("You like this");
+                } else {
+                    $('#'+status_id+'.like-info').html("1 like this");
+                }
+            } else {
+                if (data.user_liked) {
+                    $('#'+status_id+'.like-info').html("You and "+ --data.like_counts +" others like this");
+                } else {
+                    $('#'+status_id+'.like-info').html(data.like_counts +" like this");
+                }
+            }
+        });
+    }
+
+    function load_message_box(container) {
+        var status_id = container.id
+        $(container).load("load_reply_to_index?in_reply_to="+status_id);
+
+        $(container).ready(function() {
+            $('#message-reply-'+status_id).ready(function() {
+                $(document).on('submit','#message-reply-'+status_id , function(e){
+                    e.preventDefault();
+                    var post_data = $(this).serializeArray();
+                    post_data.push({name: "status_id", value: status_id })
+                    $.post("load_reply_to_index/", $.param(post_data), function(data) {
+                        $('#reply-container-'+status_id).append(data);
+                        $('form#message-reply-'+ status_id +' #message-content').val('');
+                        action_buttons();
+                        bindpopover($('#reply-container-'+status_id+ ' .like-popover:last'))
+                        bindlike($('#reply-container-'+status_id+ ' .like:last'));
+                        bindedit(('#reply-container-'+status_id+ ' .edit:last'));
+                    });
+                    return false;
+                });
+
             });
         });
+    }
 
+    function bindedit(container) {
         //edit status
-        $('.edit').click(function() {
+        container.click(function() {
             var btn = this.value;
             $("#edit-container-"+btn).load("edit_status/"+btn)
 
@@ -62,40 +149,28 @@ $(document).ready(function() {
         });
     }
 
-    //load replies
-    $('.loadreply').click(function() {
-        var btn = this.value;
-        this.remove();
-        $.post('load_reply/', { pk: btn }, function(data) {
-            $('#reply-container-'+btn).prepend(data);
-            action_buttons();
-        });
-    });
-
-    //reply to message
-    $('.comment-container').each(function() {
-        load_message_box(this);
-    });
-
-    function load_message_box(container) {
-        var status_id = container.id
-        $(container).load("load_reply_to_index?in_reply_to="+status_id);
-
-        $(container).ready(function() {
-            $('#message-reply-'+status_id).ready(function() {
-                $(document).on('submit','#message-reply-'+status_id , function(e){
-                    e.preventDefault();
-                    var post_data = $(this).serializeArray();
-                    post_data.push({name: "status_id", value: status_id })
-                    $.post("load_reply_to_index/", $.param(post_data), function(data) {
-                        $('#reply-container-'+status_id).append(data);
-                        $('form#message-reply-'+ status_id +' #message-content').val('');
-                        action_buttons();
-                    });
-                    return false;
-                });
-
+    function bindlike(container) {
+        //like status
+        container.click(function() {
+            var btn = this.value;
+            $.get('like_status/', { pk: btn }, function(data) {
+                $('.like#'+btn+' span').text(data.result)
+                load_like_info($('#'+btn+'.like-info').get(0));
             });
+        });
+    }
+
+    function bindpopover(container) {
+        container.popover({
+            html: true,
+            trigger: 'manual',
+            content: function () {
+                return $.ajax({url: 'show_likers/'+this.id,
+                    dataType: 'html',
+                    async: false}).responseText;
+            }
+        }).click(function(e) {
+            $(this).popover('toggle');
         });
     }
 });

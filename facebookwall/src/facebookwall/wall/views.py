@@ -5,7 +5,7 @@ from django.core.urlresolvers import reverse
 from django.views import generic
 from django.utils import timezone
 from django.contrib.auth.decorators import login_required
-from wall.forms import StatusForm, PostStatusForm, PostReplyForm
+from wall.forms import StatusForm, PostStatusForm, PostReplyForm, ReplyForm
 from django.views.generic.edit import FormMixin
 from django.utils.decorators import method_decorator
 import json
@@ -55,13 +55,36 @@ class LikeStatus(generic.View):
             content_type="application/json"
         )
 
-# def like_status(request):
-#     post = request.POST
-#     user = request.user
-#     status = get_object_or_404(Status, pk=post['status_id'])
-#     like = Likes(liked_status=status, liker=user)
-#     like.save()
-#     return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+
+class LikeInfo(generic.View):
+    def get(self, request, *args, **kwargs):
+        get = request.GET
+        status = get_object_or_404(Status, pk=get['pk'])
+        likes = Likes.objects.filter(liked_status=status)
+        like = Likes.objects.filter(liked_status=status, liker=request.user)
+        response_data = {}
+
+        response_data['like_counts'] = likes.count()
+
+        if like:
+            response_data['user_liked'] = True
+        else:
+            response_data['user_liked'] = False
+
+        return HttpResponse(
+            json.dumps(response_data),
+            content_type="application/json"
+        )
+
+
+class ShowLikers(generic.ListView):
+    model = Likes
+    template_name = 'wall/likes.html'
+    context_object_name = 'likers'
+
+    def get_queryset(self):
+        status = get_object_or_404(Status, pk=self.kwargs['pk'])
+        return Likes.objects.filter(liked_status=status)
 
 
 class StatusUpdateView(generic.UpdateView):
@@ -133,9 +156,9 @@ class DetailView(generic.DetailView, FormMixin):
                                   kwargs['pk'],
                                   self.request.POST)
         if self.form.is_valid():
-            self.form.save()
+            status = self.form.save()
 
-        return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+        return HttpResponseRedirect('/wall/reply_detail/'+str(status.id))
         # return self.get(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
@@ -146,7 +169,7 @@ class DetailView(generic.DetailView, FormMixin):
 
 
 class MyDetailView(DetailView):
-    form_class = StatusForm
+    form_class = ReplyForm
     model = Status
 
 
@@ -161,14 +184,14 @@ class ReplyView(generic.ListView):
                     in_reply_to=self.request_pk
                 ).order_by('pub_date')  # [:2]
 
-    def post(self, request, *args, **kwargs):
+    def get(self, request, *args, **kwargs):
         if request.is_ajax:
-            self.request_pk = request.POST['pk']
+            self.request_pk = request.GET['pk']
             return super(ReplyView, self).get(request, *args, **kwargs)
 
 
 class ReplyFromIndexView(generic.CreateView):
-    form_class = StatusForm
+    form_class = ReplyForm
     template_name = 'wall/reply-wall.html'
 
     def post(self, request, *args, **kwargs):

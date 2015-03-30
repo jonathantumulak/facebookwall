@@ -7,6 +7,7 @@ from django.utils import timezone
 
 
 class StatusForm(ModelForm):
+    message = forms.CharField(widget=forms.Textarea, label='')
     class Meta:
         model = Status
         exclude = ['author', 'pub_date', 'in_reply_to']
@@ -17,6 +18,23 @@ class StatusForm(ModelForm):
                 'class': 'form-control',
                 'id': 'message-content',
                 'rows': 2,
+                'placeholder': 'What\'s on your mind?',
+            })
+
+
+class ReplyForm(ModelForm):
+    message = forms.CharField(widget=forms.Textarea, label='')
+    class Meta:
+        model = Status
+        exclude = ['author', 'pub_date', 'in_reply_to']
+
+    def __init__(self, *args, **kwargs):
+        super(ReplyForm, self).__init__(*args, **kwargs)
+        self.fields['message'].widget.attrs.update({
+                'class': 'form-control',
+                'id': 'message-content',
+                'rows': 2,
+                'placeholder': 'Write a comment...',
             })
 
 

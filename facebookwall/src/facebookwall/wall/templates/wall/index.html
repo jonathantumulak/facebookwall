@@ -32,11 +32,7 @@ The Facebook
                 <div id="edit-container-{{ update.id }}">
                     <p id="{{ update.id }}">{{ update.message }}</p>
                 </div>
-                {% if update.liked.count %}
-                    <div id="like-count">{{ update.liked.count }} liked this.</div>
-                {% endif %}
                 {% if update.liked|is_liked:user.id %}
-                    <div>You liked this</div>
                     <button type="submit" id="{{ update.id }}" class="btn btn-default like pull-left" value="{{ update.id }}"><span>Unlike</span></button>
                 {% else %}
                     <button type="submit" id="{{ update.id }}" class="btn btn-default like pull-left" value="{{ update.id }}"><span>Like</span></button>
@@ -47,6 +43,7 @@ The Facebook
                 {% endif %}
             </div>
             <div id="replies" class="well">
+            <a id="{{ update.id }}" tabindex="0" role="button" data-toggle="popover" data-trigger="click" data-placement="bottom"><div id="{{ update.id }}" class="like-info"></div></a>
             {% if update.replies.all %}
                 <button type="submit" class="btn btn-default loadreply" value="{{ update.id }}">Load replies</button>
             {% endif %}
@@ -72,7 +69,7 @@ The Facebook
         </div>
     {% endif %}
 {% else %}
-    <p>No status are available.</p>
+    <p id="no-status">No status are available.</p>
 {% endif %}
 </div>
 

@@ -12,7 +12,7 @@
 
 {% block content %}
 <div class="container wall-content">
-<div class="panel panel-default">
+<div id="{{ status.id }}" class="panel panel-default">
     <div class="panel-body">
         <div class="clearfix post-info">
             <img class="pull-left" src="{{ static }}/static/img/default.jpg" alt="Smiley face" height="42" width="42">
@@ -22,32 +22,25 @@
         <div id="edit-container-{{ status.id }}">
             <p id="{{ status.id }}">{{ status.message }}</p>
         </div>
-        {% if status.liked.count %}
-            <div>{{ status.liked.count }} liked this.</div>
-        {% endif %}
         {% if status.liked|is_liked:user.id %}
-            <div>You liked this</div>
+            <button type="submit" id="{{ status.id }}" class="btn btn-default like pull-left" value="{{ status.id }}"><span>Unlike</span></button>
         {% else %}
-            <form action="/wall/like_status/" class="pull-left" method="post">{% csrf_token %}
-                <input id="id_status_id" name="status_id" type="hidden" value="{{ status.id }}"/>
-                <button type="submit" class="btn btn-default">Like</button>
-            </form>
+            <button type="submit" id="{{ status.id }}" class="btn btn-default like pull-left" value="{{ status.id }}"><span>Like</span></button>
         {% endif %}
         {% if user == status.author %}
             <button type="submit" class="btn btn-default edit pull-left" value="{{ status.id }}">Edit</button>
-            <form action="/wall/delete_status/" class="" method="post">{% csrf_token %}
-                <input id="id_status_id" name="status_id" type="hidden" value="{{ status.id }}"/>
-                <button type="submit" class="btn btn-default">Delete</button>
-            </form>
+            <button type="submit" class="btn btn-default delete" value="{{ status.id }}">Delete</button>
         {% endif %}
+        <a id="{{ status.id }}" tabindex="0" role="button" data-toggle="popover" data-trigger="click" data-placement="bottom"><div id="{{ status.id }}" class="like-info"></div></a>
     </div>
 </div>
 
 <h4>Comments</h4>
 
 <div class="well">
+    <div id="reply-container">
     {% for reply in status.replies.all %}
-        <div class="panel panel-default">
+        <div id="{{ reply.id }}" class="panel panel-default">
             <div class="panel-body">
                 <div class="clearfix post-info">
                 <img class="pull-left" src="{{ static }}/static/img/default.jpg" alt="Smiley face" height="42" width="42">
@@ -57,29 +50,22 @@
                 <div id="edit-container-{{ reply.id }}">
                     <p id="{{ reply.id }}">{{ reply.message }}</p>
                 </div>
-                {% if reply.liked.count %}
-                    <div>{{ reply.liked.count }} liked this.</div>
-                {% endif %}
                 {% if reply.liked|is_liked:user.id %}
-                    <div>You liked this</div>
+                    <button type="submit" id="{{ reply.id }}" class="btn btn-default like pull-left" value="{{ reply.id }}"><span>Unlike</span></button>
                 {% else %}
-                    <form action="/wall/like_status/" class="pull-left" method="post">{% csrf_token %}
-                        <input id="id_status_id" name="status_id" type="hidden" value="{{ reply.id }}"/>
-                        <button type="submit" class="btn btn-default">Like</button>
-                    </form>
+                    <button type="submit" id="{{ reply.id }}" class="btn btn-default like pull-left" value="{{ reply.id }}"><span>Like</span></button>
                 {% endif %}
                 {% if user == reply.author %}
                     <button type="submit" class="btn btn-default edit pull-left" value="{{ reply.id }}">Edit</button>
-                    <form action="/wall/delete_status/" class="" method="post">{% csrf_token %}
-                        <input id="id_status_id" name="status_id" type="hidden" value="{{ reply.id }}"/>
-                        <button type="submit" class="btn btn-default">Delete</button>
-                    </form>
+                    <button type="submit" class="btn btn-default delete" value="{{ reply.id }}">Delete</button>
                 {% endif %}
+                <a id="{{ reply.id }}" tabindex="0" role="button" data-toggle="popover" data-trigger="click" data-placement="bottom"><div id="{{ reply.id }}" class="like-info"></div></a>
             </div>
         </div>
     {% endfor %}
+    </div>
 
-    <form action="" class="message-form" method="post">{% csrf_token %}
+    <form action="" class="reply-form" method="post">{% csrf_token %}
         {{ form }}
         <button class="btn btn-primary" type="submit">Reply</button>
     </form>

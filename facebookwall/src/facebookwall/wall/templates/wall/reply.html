@@ -10,19 +10,16 @@
             <div id="edit-container-{{ reply.id }}">
                 <p id="{{ reply.id }}">{{ reply.message }}</p>
             </div>
-            {% if reply.liked.count %}
-                <div>{{ reply.liked.count }} liked this.</div>
-            {% endif %}
-            {% if update.liked|is_liked:user.id %}
-                <div>You liked this</div>
-                <button type="submit" id="{{ update.id }}" class="btn btn-default like pull-left" value="{{ update.id }}"><span>Unlike</span></button>
+            {% if reply.liked|is_liked:user.id %}
+                <button type="submit" id="{{ reply.id }}" class="btn btn-default like pull-left" value="{{ reply.id }}"><span>Unlike</span></button>
             {% else %}
-                <button type="submit" id="{{ update.id }}" class="btn btn-default like pull-left" value="{{ update.id }}"><span>Like</span></button>
+                <button type="submit" id="{{ reply.id }}" class="btn btn-default like pull-left" value="{{ reply.id }}"><span>Like</span></button>
             {% endif %}
             {% if user == reply.author %}
                 <button type="submit" class="btn btn-default edit pull-left" value="{{ reply.id }}">Edit</button>
                 <button type="submit" class="btn btn-default delete" value="{{ reply.id }}">Delete</button>
             {% endif %}
+            <a id="{{ reply.id }}" class="like-popover" tabindex="0" role="button" data-toggle="popover" data-trigger="click" data-placement="bottom"><div id="{{ reply.id }}" class="like-info"></div></a>
         </div>
     </div>
 {% endfor %}
