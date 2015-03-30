@@ -20,41 +20,65 @@ def class_view_decorator(function_decorator):
     return simple_decorator
 
 
-def delete_status(request):
-    post = request.POST
-    status = get_object_or_404(Status, pk=post['status_id'])
-    if status.in_reply_to is None:
-        status.delete()
-        return HttpResponseRedirect('/wall/')
-    else:
-        status.delete()
-        return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+class DeleteStatus(generic.View):
+    def get(self, request, *args, **kwargs):
+        if request.is_ajax:
+            get = request.GET
+            status = get_object_or_404(Status, pk=get['pk'])
+            status.delete()
+            response_data = {
+                'result': 'success'
+            }
+        return HttpResponse(
+            json.dumps(response_data),
+            content_type="application/json"
+        )
 
 
-def like_status(request):
-    post = request.POST
-    user = request.user
-    status = get_object_or_404(Status, pk=post['status_id'])
-    like = Likes(liked_status=status, liker=user)
-    like.save()
-    return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+class LikeStatus(generic.View):
+    def get(self, request, *args, **kwargs):
+        get = request.GET
+        status = get_object_or_404(Status, pk=get['pk'])
+        like = Likes.objects.filter(liked_status=status, liker=request.user)
+        response_data = {}
+        print like
+        if like:
+            like.delete()
+            response_data['result'] = "Like"
+        else:
+            like = Likes(liked_status=status, liker=request.user)
+            like.save()
+            response_data['result'] = "Unlike"
+
+        return HttpResponse(
+            json.dumps(response_data),
+            content_type="application/json"
+        )
+
+# def like_status(request):
+#     post = request.POST
+#     user = request.user
+#     status = get_object_or_404(Status, pk=post['status_id'])
+#     like = Likes(liked_status=status, liker=user)
+#     like.save()
+#     return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
 
 
-# class StatusUpdateView(generic.UpdateView):
-#     form_class = PostReplyForm
+class StatusUpdateView(generic.UpdateView):
+    model = Status
+    fields = ['message']
+    form_class = StatusForm
+    template_name = 'wall/update-form.html'
 
-
-def edit_status(request, pk=None):
-    post = request.POST
-    status = get_object_or_404(Status, pk=post['status_id'])
-    status.message = post['message']
-    status.save()
-    response_data = {}
-    response_data['result'] = 'Edit saved'
-    return HttpResponse(
-        json.dumps(response_data),
-        content_type="application/json"
-    )
+    def form_valid(self, form):
+        self.object = form.save()
+        response_data = {}
+        response_data['result'] = 'Edit saved'
+        response_data['message'] = form.data['message']
+        return HttpResponse(
+            json.dumps(response_data),
+            content_type="application/json"
+        )
 
 
 @class_view_decorator(login_required)
@@ -67,10 +91,10 @@ class IndexView(generic.ListView, FormMixin):
     def post(self, request, *args, **kwargs):
         self.form = PostStatusForm(self.request.user, self.request.POST)
         if self.form.is_valid():
-            self.form.save()
+            status = self.form.save()
 
         # return self.get(request, *args, **kwargs)
-        return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+        return HttpResponseRedirect('/wall/status_detail/'+str(status.id))
 
     def get_queryset(self):
         return Status.objects.exclude(
@@ -170,6 +194,17 @@ class ReplyDetail(generic.DetailView):
 
     def get_context_data(self, **kwargs):
         context = super(ReplyDetail, self).get_context_data(**kwargs)
+        context['user'] = self.request.user
+
+        return context
+
+
+class StatusDetail(generic.DetailView):
+    model = Status
+    template_name = 'wall/status-single.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(StatusDetail, self).get_context_data(**kwargs)
         context['user'] = self.request.user
 
         return context

@@ -1,124 +1,103 @@
 $(document).ready(function() {
-    $('.edit').click(function() {
-        var btn = this.value;
-        //alert(btn);
-        var p = $('p#'+btn);
-        p.wrap(function() {
-            return '<form action="" class="post-form" method="post"></form>';
-        });
+    action_buttons();
 
-        p.replaceWith($("<textarea/>", {
-            "class": "edit",
-            "name": "message",
-            "text": p.text().replace("\n", "").replace(/\s{2,}/g, " ").trim(),
-            "css": { "width": p.css('width') }
-        }));
-
-          $("<input type='hidden' value='"+btn+"' />")
-            .attr("id", "status_id")
-            .attr("name", "status_id")
-            .appendTo(".post-form");
-
-        $('.edit').keypress(function (e) {
-            if (e.which == 13) {
-                $('.post-form').submit();
-                return false;
-            }
-        });
-        console.log($('.post-form'))
-
-        $('.post-form').on('submit', function(e){
-            e.preventDefault();
-            console.log(this);
-            edit_status(this);
-            return false
-        });
-
-        function edit_status(status) {
-            $.ajax({
-                url : "edit_status/", // the endpoint
-                type : "POST", // http method
-                data : { status_id: status.status_id.value, message : status.message.value }, // data sent with the post request
-
-                // handle a successful response
-                success : function(json) {
-                    var p = $('#edit-container-'+status.status_id.value);
-                    p.html('<p id="'+ status.status_id.value +'">'+status.message.value+'</p>')
-                    p.attr("id", 'edit-container-'+status.status_id.value)
-                    p.prepend('<div class="alert alert-success alert-dismissible" role="alert"><button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>'+json.result+'</div>');
-                },
-
-                // handle a non-successful response
-                error : function(xhr,errmsg,err) {
-                    var p = $('#edit-container-'+status.status_id.value);
-                    p.prepend('<div class="alert alert-danger alert-dismissible" role="alert"><button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>Oops! We have encountered an error: '+errmsg+'</div>');
-                    console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
-                }
+    //postmessage
+    $('.message-form').on('submit', function(e) {
+        e.preventDefault();
+        $.post($(this).attr("action"), $(this).serialize(), function(data) {
+            $(data).hide().prependTo('.status-container').fadeIn('slow');
+            $('.status-container .panel:first').ready(function() {
+                load_message_box($('.status-container .panel:first div.comment-container').get(0));
+                action_buttons();
             });
-        };
-
+        });
+        $('form.message-form #message-content').val('');
     });
 
+    //deletestatus
+    function action_buttons() {
+        //delete status
+        $('.delete').click(function() {
+            var btn = this.value;
+            $.get('delete_status/', { pk: btn }, function(data) {
+                $('.panel#'+btn).fadeOut(300, function(){ 
+                    $(this).remove();
+                });
+            });
+        });
+
+        //like status
+        $('.like').click(function() {
+            var btn = this.value;
+            $.get('like_status/', { pk: btn }, function(data) {
+                $('.like#'+btn+' span').text(data.result)
+            });
+        });
+
+        //edit status
+        $('.edit').click(function() {
+            var btn = this.value;
+            $("#edit-container-"+btn).load("edit_status/"+btn)
+
+            $('#message-content').ready(function() {
+                $(this).keypress(function (e) {
+                    if (e.which == 13) {
+                        $('.post-form').submit();
+                        return false;
+                    }
+                });
+            });
+
+            $('.post-form').ready(function() {
+                $(document).on('submit','.post-form' , function(e) {
+                    e.preventDefault();
+                    $.post('edit_status/'+btn, $(this).serialize(), function(data) {
+                        var p = $('#edit-container-'+btn);
+                        p.html('<p id="'+ btn +'">'+data.message+'</p>')
+                        p.attr("id", 'edit-container-'+btn)
+                        p.prepend('<div class="alert alert-success alert-dismissible" role="alert"><button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>'+data.result+'</div>');
+                    });
+                });
+            });
+        });
+    }
+
+    //load replies
     $('.loadreply').click(function() {
         var btn = this.value;
-        load_replies(btn)
         this.remove();
+        $.post('load_reply/', { pk: btn }, function(data) {
+            $('#reply-container-'+btn).prepend(data);
+            action_buttons();
+        });
     });
 
-    function load_replies(id) {
-        $.ajax({
-            url : "load_reply/", // the endpoint
-            type : "POST", // http method
-            data : { pk: id }, // data sent with the post request
-
-            // handle a successful response
-            success : function(json) {
-               $('#reply-container-'+id).prepend(json);
-            },
-
-            // handle a non-successful response
-            error : function(xhr,errmsg,err) {
-                $('#reply-container-'+id).append('error in loading...');
-            }
-        });
-    };
-
-
+    //reply to message
     $('.comment-container').each(function() {
-        var status_id = this.id
-        $(this).load("load_reply_to_index?in_reply_to="+status_id);
+        load_message_box(this);
+    });
 
-        $(this).ready(function() {
+    function load_message_box(container) {
+        var status_id = container.id
+        $(container).load("load_reply_to_index?in_reply_to="+status_id);
+
+        $(container).ready(function() {
             $('#message-reply-'+status_id).ready(function() {
                 $(document).on('submit','#message-reply-'+status_id , function(e){
                     e.preventDefault();
-                    post_reply(this, status_id);
-                    return false
+                    var post_data = $(this).serializeArray();
+                    post_data.push({name: "status_id", value: status_id })
+                    $.post("load_reply_to_index/", $.param(post_data), function(data) {
+                        $('#reply-container-'+status_id).append(data);
+                        $('form#message-reply-'+ status_id +' #message-content').val('');
+                        action_buttons();
+                    });
+                    return false;
                 });
 
             });
         });
-    })
-
-    function post_reply(status, reply_to) {
-        $.ajax({
-            url : "load_reply_to_index/", // the endpoint
-            type : "POST", // http method
-            data : { status_id: reply_to, message : status.message.value }, // data sent with the post request
-
-            // handle a successful response
-            success : function(json) {
-                console.log(json)
-                console.log($('#reply-container-'+reply_to))
-                $('#reply-container-'+reply_to).append(json);
-            },
-
-            // handle a non-successful response
-            error : function(xhr,errmsg,err) {
-    
-            }
-        });
-    };
+    }
 });
 
 // This function gets cookie with a given name

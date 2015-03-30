@@ -19,9 +19,10 @@ The Facebook
     </form>
 </div>
 
+<div class="status-container">
 {% if latest_wall_updates %}
     {% for update in latest_wall_updates %}
-        <div class="panel panel-default">
+        <div id="{{ update.id }}" class="panel panel-default">
             <div class="panel-body">
                 <div class="clearfix post-info">
                     <img class="pull-left" src="{{ static }}/static/img/default.jpg" alt="Smiley face" height="42" width="42">
@@ -32,22 +33,17 @@ The Facebook
                     <p id="{{ update.id }}">{{ update.message }}</p>
                 </div>
                 {% if update.liked.count %}
-                    <div>{{ update.liked.count }} liked this.</div>
+                    <div id="like-count">{{ update.liked.count }} liked this.</div>
                 {% endif %}
                 {% if update.liked|is_liked:user.id %}
                     <div>You liked this</div>
+                    <button type="submit" id="{{ update.id }}" class="btn btn-default like pull-left" value="{{ update.id }}"><span>Unlike</span></button>
                 {% else %}
-                    <form action="/wall/like_status/" class="pull-left" method="post">{% csrf_token %}
-                        <input id="like_status_id" name="status_id" type="hidden" value="{{ update.id }}"/>
-                        <button type="submit" class="btn btn-default">Like</button>
-                    </form>
+                    <button type="submit" id="{{ update.id }}" class="btn btn-default like pull-left" value="{{ update.id }}"><span>Like</span></button>
                 {% endif %}
                 {% if user == update.author %}
                     <button type="submit" class="btn btn-default edit pull-left" value="{{ update.id }}">Edit</button>
-                    <form action="/wall/delete_status/" class="" method="post">{% csrf_token %}
-                        <input id="delete_status_id" name="status_id" type="hidden" value="{{ update.id }}"/>
-                        <button type="submit" class="btn btn-default">Delete</button>
-                    </form>
+                    <button type="submit" class="btn btn-default delete" value="{{ update.id }}">Delete</button>
                 {% endif %}
             </div>
             <div id="replies" class="well">
@@ -59,6 +55,7 @@ The Facebook
             </div>
         </div>
     {% endfor %}
+</div>
     {% if is_paginated %}
         <div class="pagination">
             <span class="page-links">

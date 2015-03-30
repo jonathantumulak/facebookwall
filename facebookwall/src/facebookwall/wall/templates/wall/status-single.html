@@ -23,4 +23,11 @@
                 <button type="submit" class="btn btn-default delete" value="{{ status.id }}">Delete</button>
             {% endif %}
         </div>
+        <div id="replies" class="well">
+            {% if update.replies.all %}
+                <button type="submit" class="btn btn-default loadreply" value="{{ status.id }}">Load replies</button>
+            {% endif %}
+                <div id="reply-container-{{ status.id }}"></div>
+            <div id="{{ status.id }}" class="comment-container"></div>
+        </div>
     </div>
