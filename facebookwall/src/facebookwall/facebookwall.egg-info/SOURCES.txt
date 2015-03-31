@@ -1,5 +1,0 @@
-setup.py
-facebookwall.egg-info/PKG-INFO
-facebookwall.egg-info/SOURCES.txt
-facebookwall.egg-info/dependency_links.txt
-facebookwall.egg-info/top_level.txt

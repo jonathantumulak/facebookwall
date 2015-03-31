@@ -1,14 +1,16 @@
-from wall.models import Status, Likes
+import json
+
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect
 from django.core.urlresolvers import reverse
 from django.views import generic
 from django.utils import timezone
 from django.contrib.auth.decorators import login_required
-from wall.forms import StatusForm, PostStatusForm, PostReplyForm, ReplyForm
 from django.views.generic.edit import FormMixin
 from django.utils.decorators import method_decorator
-import json
+
+from wall.models import Status, Likes
+from wall.forms import StatusForm, PostStatusForm, PostReplyForm, ReplyForm
 
 # Create your views here.
 

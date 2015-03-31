@@ -2,12 +2,14 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django import forms
 from django.forms import ModelForm
-from wall.models import Status
 from django.utils import timezone
+
+from wall.models import Status
 
 
 class StatusForm(ModelForm):
     message = forms.CharField(widget=forms.Textarea, label='')
+
     class Meta:
         model = Status
         exclude = ['author', 'pub_date', 'in_reply_to']
@@ -24,6 +26,7 @@ class StatusForm(ModelForm):
 
 class ReplyForm(ModelForm):
     message = forms.CharField(widget=forms.Textarea, label='')
+
     class Meta:
         model = Status
         exclude = ['author', 'pub_date', 'in_reply_to']
