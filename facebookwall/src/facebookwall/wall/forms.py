@@ -12,7 +12,7 @@ class StatusForm(ModelForm):
 
     class Meta:
         model = Status
-        exclude = ['author', 'pub_date', 'in_reply_to']
+        exclude = ['user', 'pub_date', 'in_reply_to']
 
     def __init__(self, *args, **kwargs):
         super(StatusForm, self).__init__(*args, **kwargs)
@@ -21,6 +21,7 @@ class StatusForm(ModelForm):
                 'id': 'message-content',
                 'rows': 2,
                 'placeholder': 'What\'s on your mind?',
+                'required': 'true',
             })
 
 
@@ -29,7 +30,7 @@ class ReplyForm(ModelForm):
 
     class Meta:
         model = Status
-        exclude = ['author', 'pub_date', 'in_reply_to']
+        exclude = ['user', 'pub_date', 'in_reply_to']
 
     def __init__(self, *args, **kwargs):
         super(ReplyForm, self).__init__(*args, **kwargs)
@@ -38,17 +39,18 @@ class ReplyForm(ModelForm):
                 'id': 'message-content',
                 'rows': 2,
                 'placeholder': 'Write a comment...',
+                'required': 'true',
             })
 
 
 class PostStatusForm(StatusForm):
     def __init__(self, user, *args, **kwargs):
-        self.author = user
+        self.user = user
         super(StatusForm, self).__init__(*args, **kwargs)
 
     def save(self, commit=True):
         status = super(PostStatusForm, self).save(commit=False)
-        status.author = self.author
+        status.user = self.user
         status.pub_date = timezone.now()
 
         if commit:
@@ -58,13 +60,13 @@ class PostStatusForm(StatusForm):
 
 class PostReplyForm(StatusForm):
     def __init__(self, user, reply_to, *args, **kwargs):
-        self.author = user
+        self.user = user
         self.reply_to = reply_to
         super(StatusForm, self).__init__(*args, **kwargs)
 
     def save(self, commit=True):
         status = super(PostReplyForm, self).save(commit=False)
-        status.author = self.author
+        status.user = self.user
         status.pub_date = timezone.now()
         status.in_reply_to = Status.objects.get(pk=self.reply_to)
 

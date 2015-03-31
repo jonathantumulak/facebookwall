@@ -7,7 +7,7 @@ from django.contrib.auth.models import User
 
 class Status(models.Model):
     message = models.TextField()
-    author = models.ForeignKey(User, related_name="author")
+    user = models.ForeignKey(User, related_name="user")
     pub_date = models.DateTimeField('date published')
     in_reply_to = models.ForeignKey('self', blank=True,
                                     null=True, default=None,
@@ -17,8 +17,9 @@ class Status(models.Model):
         return self.message
 
 
-class Likes(models.Model):
+class Like(models.Model):
+    status = models.ForeignKey(Status, related_name="likes")
+    user = models.ForeignKey(User, related_name="likes")
+
     class Meta:
-        unique_together = ['liked_status', 'liker']
-    liked_status = models.ForeignKey(Status, related_name="liked")
-    liker = models.ForeignKey(User, related_name="liker")
+        unique_together = ['status', 'user']

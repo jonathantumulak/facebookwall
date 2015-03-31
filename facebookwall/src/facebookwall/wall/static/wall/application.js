@@ -1,78 +1,110 @@
 $(document).ready(function() {
     action_buttons();
 
-    bindlike($('.like'));
     bindpopover($('[data-toggle="popover"]'));
-    bindedit($('.edit'));
 
-    //postmessage
+    //replymessage
     $('.reply-form').on('submit', function(e) {
         e.preventDefault();
-        $.post($(this).attr("action"), $(this).serialize(), function(data) {
-            $(data).hide().appendTo('#reply-container').fadeIn('slow');
-            $('#reply-container .panel:last').ready(function() {
-                load_like_info($('#reply-container .panel:last div.like-info').get(0));
-                action_buttons();
-                bindlike($('#reply-container .panel:last .like'));
+        var post_data = $(this).serializeArray();
+        console.log(post_data[1].value.trim())
+        if (post_data[1].value.trim() != "") {
+            $.post($(this).attr("action"), $(this).serialize(), function(data) {
+                $(data).hide().appendTo('#reply-container').fadeIn('slow');
                 bindpopover($('#reply-container .panel:last a.like-popover'));
-                bindedit($('#reply-container .panel:last .edit'));
+                action_buttons();
             });
-        });
-        $('form.message-form #message-content').val('');
+            $('form.reply-form #message-content').val('');
+        } else {
+            alert("Empty message")
+        }
     });
 
     //postmessage
     $('.message-form').on('submit', function(e) {
         e.preventDefault();
-        $.post($(this).attr("action"), $(this).serialize(), function(data) {
-            $(data).hide().prependTo('.status-container').fadeIn('slow');
-            $('.status-container .panel:first').ready(function() {
-                load_message_box($('.status-container .panel:first div.comment-container').get(0));
-                load_like_info($('.status-container .panel:first div.like-info').get(0));
+        var post_data = $(this).serializeArray();
+        if (post_data[1].value.trim() != "") {
+            $.post($(this).attr("action"), $(this).serialize(), function(data) {
+                $(data).hide().prependTo('.status-container').fadeIn('slow');
+                bindpopover($('.status-container .panel:first a.like-popover'));
                 action_buttons();
                 $('#no-status').remove();
-                bindlike($('.status-container .panel:first .like'));
-                bindpopover($('.status-container .panel:first a.like-popover'));
-                bindedit($('.status-container .panel:first .edit'));
             });
-        });
-        $('form.message-form #message-content').val('');
+            $('form.message-form #message-content').val('');
+        } else {
+            alert("Empty message")
+        }
     });
 
-    //deletestatus
-    function action_buttons() {
-        //delete status
-        $('.delete').click(function() {
-            var btn = this.value;
-            $.get('delete_status/', { pk: btn }, function(data) {
-                $('.panel#'+btn).fadeOut(300, function(){ 
-                    $(this).remove();
-                });
+    //like status
+    $(document).on('click', '.like', function() {
+        var btn = this.value;
+        $.get('like_status/', { pk: btn }, function(data) {
+            $('.like#'+btn+' span').text(data.result)
+            load_like_info($('#'+btn+'.like-info').get(0));
+        });
+    });
+
+    //delete
+    $(document).on('click', '.delete', function() {
+        var btn = this.value;
+        $.get('delete_status/', { pk: btn }, function(data) {
+            $('.panel#'+btn).fadeOut(300, function(){ 
+                $(this).remove();
             });
         });
+    });
 
-        $('.like-info').each(function() {
-            load_like_info(this);
+    //edit
+    $(document).on('click', '.edit', function() {
+        var btn = this.value;
+        $("#edit-container-"+btn).load("edit_status/"+btn)
+
+        $('#message-content').ready(function() {
+            $(this).keypress(function (e) {
+                if (e.which == 13) {
+                    $('.post-form').submit();
+                    return false;
+                }
+            });
         });
-    }
+    });
+
+    //edit-form
+    $(document).on('submit','.post-form' , function(e) {
+        var id = this.id
+        console.log(id)
+        e.preventDefault();
+        $.post('edit_status/'+id, $(this).serialize(), function(data) {
+            var p = $('#edit-container-'+id);
+            p.html('<p id="'+ id +'">'+data.message+'</p>')
+            p.attr("id", 'edit-container-'+id)
+            p.prepend('<div class="alert alert-success alert-dismissible" role="alert"><button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>'+data.result+'</div>');
+        });
+    });
+
 
     //load replies
-    $('.loadreply').click(function() {
+    $(document).on('click', '.loadreply', function() {
         var btn = this.value;
         this.remove();
         $.get('load_reply/', { pk: btn }, function(data) {
             $('#reply-container-'+btn).prepend(data);
-            action_buttons();
             bindpopover($('#reply-container-'+btn+ ' .like-popover'))
-            bindlike($('#reply-container-'+btn+ ' .like'));
-            bindedit($('#reply-container-'+btn+ ' .edit'));
+            action_buttons();
         });
     });
 
-    //reply to message
-    $('.comment-container').each(function() {
-        load_message_box(this);
-    });
+    function action_buttons() {
+        $('.like-info').each(function() {
+            load_like_info(this);
+        });
+
+        $('.comment-container').each(function() {
+            load_message_box(this);
+        });
+    }
 
     function load_like_info(container) {
         var status_id = container.id
@@ -104,58 +136,21 @@ $(document).ready(function() {
                 $(document).on('submit','#message-reply-'+status_id , function(e){
                     e.preventDefault();
                     var post_data = $(this).serializeArray();
-                    post_data.push({name: "status_id", value: status_id })
-                    $.post("load_reply_to_index/", $.param(post_data), function(data) {
-                        $('#reply-container-'+status_id).append(data);
-                        $('form#message-reply-'+ status_id +' #message-content').val('');
-                        action_buttons();
-                        bindpopover($('#reply-container-'+status_id+ ' .like-popover:last'))
-                        bindlike($('#reply-container-'+status_id+ ' .like:last'));
-                        bindedit(('#reply-container-'+status_id+ ' .edit:last'));
-                    });
-                    return false;
-                });
-
-            });
-        });
-    }
-
-    function bindedit(container) {
-        //edit status
-        container.click(function() {
-            var btn = this.value;
-            $("#edit-container-"+btn).load("edit_status/"+btn)
-
-            $('#message-content').ready(function() {
-                $(this).keypress(function (e) {
-                    if (e.which == 13) {
-                        $('.post-form').submit();
+                    console.log(post_data[1].value.trim())
+                    if (post_data[1].value.trim() != "") {
+                        post_data.push({name: "status_id", value: status_id })
+                        $.post("load_reply_to_index/", $.param(post_data), function(data) {
+                            $('#reply-container-'+status_id).append(data);
+                            $('form#message-reply-'+ status_id +' #message-content').val('');
+                            action_buttons();
+                            bindpopover($('#reply-container-'+status_id+ ' .like-popover:last'))
+                        });
                         return false;
+                    } else {
+                        alert("Empty message")
                     }
                 });
-            });
 
-            $('.post-form').ready(function() {
-                $(document).on('submit','.post-form' , function(e) {
-                    e.preventDefault();
-                    $.post('edit_status/'+btn, $(this).serialize(), function(data) {
-                        var p = $('#edit-container-'+btn);
-                        p.html('<p id="'+ btn +'">'+data.message+'</p>')
-                        p.attr("id", 'edit-container-'+btn)
-                        p.prepend('<div class="alert alert-success alert-dismissible" role="alert"><button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>'+data.result+'</div>');
-                    });
-                });
-            });
-        });
-    }
-
-    function bindlike(container) {
-        //like status
-        container.click(function() {
-            var btn = this.value;
-            $.get('like_status/', { pk: btn }, function(data) {
-                $('.like#'+btn+' span').text(data.result)
-                load_like_info($('#'+btn+'.like-info').get(0));
             });
         });
     }

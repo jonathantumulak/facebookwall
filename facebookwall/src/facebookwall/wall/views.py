@@ -9,7 +9,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.generic.edit import FormMixin
 from django.utils.decorators import method_decorator
 
-from wall.models import Status, Likes
+from wall.models import Status, Like
 from wall.forms import StatusForm, PostStatusForm, PostReplyForm, ReplyForm
 
 # Create your views here.
@@ -41,14 +41,15 @@ class LikeStatus(generic.View):
     def get(self, request, *args, **kwargs):
         get = request.GET
         status = get_object_or_404(Status, pk=get['pk'])
-        like = Likes.objects.filter(liked_status=status, liker=request.user)
+        like = status.likes.filter(user=request.user)
+        # like = Likes.objects.filter(liked_status=status, liker=request.user)
         response_data = {}
         print like
         if like:
             like.delete()
             response_data['result'] = "Like"
         else:
-            like = Likes(liked_status=status, liker=request.user)
+            like = Like(status=status, user=request.user)
             like.save()
             response_data['result'] = "Unlike"
 
@@ -62,8 +63,8 @@ class LikeInfo(generic.View):
     def get(self, request, *args, **kwargs):
         get = request.GET
         status = get_object_or_404(Status, pk=get['pk'])
-        likes = Likes.objects.filter(liked_status=status)
-        like = Likes.objects.filter(liked_status=status, liker=request.user)
+        likes = status.likes
+        like = likes.filter(user=request.user)
         response_data = {}
 
         response_data['like_counts'] = likes.count()
@@ -80,13 +81,13 @@ class LikeInfo(generic.View):
 
 
 class ShowLikers(generic.ListView):
-    model = Likes
+    model = Like
     template_name = 'wall/likes.html'
     context_object_name = 'likers'
 
     def get_queryset(self):
         status = get_object_or_404(Status, pk=self.kwargs['pk'])
-        return Likes.objects.filter(liked_status=status)
+        return status.likes
 
 
 class StatusUpdateView(generic.UpdateView):
@@ -117,6 +118,8 @@ class IndexView(generic.ListView, FormMixin):
         self.form = PostStatusForm(self.request.user, self.request.POST)
         if self.form.is_valid():
             status = self.form.save()
+        else:
+            return HttpResponse("Failed")
 
         # return self.get(request, *args, **kwargs)
         return HttpResponseRedirect('/wall/status_detail/'+str(status.id))

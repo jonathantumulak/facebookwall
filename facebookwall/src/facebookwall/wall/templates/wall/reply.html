@@ -4,18 +4,18 @@
         <div class="panel-body">
             <div class="clearfix post-info">
             <img class="pull-left" src="{{ static }}/static/img/default.jpg" alt="Smiley face" height="42" width="42">
-            <div><b>{{ reply.author.first_name }}  {{ reply.author.last_name }}</b></div>
+            <div><b>{{ reply.user.first_name }}  {{ reply.user.last_name }}</b></div>
                 <a id="pub-date" href="{% url 'wall:detail' reply.id %}">{{ reply.pub_date }}</a>
             </div>
             <div id="edit-container-{{ reply.id }}">
                 <p id="{{ reply.id }}">{{ reply.message }}</p>
             </div>
-            {% if reply.liked|is_liked:user.id %}
+            {% if reply.likes|is_liked:user.id %}
                 <button type="submit" id="{{ reply.id }}" class="btn btn-default like pull-left" value="{{ reply.id }}"><span>Unlike</span></button>
             {% else %}
                 <button type="submit" id="{{ reply.id }}" class="btn btn-default like pull-left" value="{{ reply.id }}"><span>Like</span></button>
             {% endif %}
-            {% if user == reply.author %}
+            {% if user == reply.user %}
                 <button type="submit" class="btn btn-default edit pull-left" value="{{ reply.id }}">Edit</button>
                 <button type="submit" class="btn btn-default delete" value="{{ reply.id }}">Delete</button>
             {% endif %}

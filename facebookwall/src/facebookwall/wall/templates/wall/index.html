@@ -26,18 +26,18 @@ The Facebook
             <div class="panel-body">
                 <div class="clearfix post-info">
                     <img class="pull-left" src="{{ static }}/static/img/default.jpg" alt="Smiley face" height="42" width="42">
-                    <div><b>{{ update.author.first_name }}  {{ update.author.last_name }}</b></div>
+                    <div><b>{{ update.user.first_name }}  {{ update.user.last_name }}</b></div>
                     <a id="pub-date" href="{% url 'wall:detail' update.id %}">{{ update.pub_date }}</a>
                 </div>
                 <div id="edit-container-{{ update.id }}">
                     <p id="{{ update.id }}">{{ update.message }}</p>
                 </div>
-                {% if update.liked|is_liked:user.id %}
+                {% if update.likes|is_liked:user.id %}
                     <button type="submit" id="{{ update.id }}" class="btn btn-default like pull-left" value="{{ update.id }}"><span>Unlike</span></button>
                 {% else %}
                     <button type="submit" id="{{ update.id }}" class="btn btn-default like pull-left" value="{{ update.id }}"><span>Like</span></button>
                 {% endif %}
-                {% if user == update.author %}
+                {% if user == update.user %}
                     <button type="submit" class="btn btn-default edit pull-left" value="{{ update.id }}">Edit</button>
                     <button type="submit" class="btn btn-default delete" value="{{ update.id }}">Delete</button>
                 {% endif %}
