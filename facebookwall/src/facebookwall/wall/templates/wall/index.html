@@ -26,7 +26,7 @@ The Facebook
             <div class="panel-body">
                 <div class="clearfix post-info">
                     <img class="pull-left" src="{{ static }}/static/img/default.jpg" alt="Smiley face" height="42" width="42">
-                    <div><b>{{ update.user.first_name }}  {{ update.user.last_name }}</b></div>
+                    <a href="{% url 'wall:profile' update.user.username %}"><div><b>{{ update.user.first_name }}  {{ update.user.last_name }}</b></div></a>
                     <a id="pub-date" href="{% url 'wall:detail' update.id %}">{{ update.pub_date }}</a>
                 </div>
                 <div id="edit-container-{{ update.id }}">

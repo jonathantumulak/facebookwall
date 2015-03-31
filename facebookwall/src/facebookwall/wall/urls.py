@@ -27,5 +27,7 @@ urlpatterns = patterns(
         views.StatusUpdateView.as_view(), name='edit_status'),
     url(r'^(\d/)?show_likers/(?P<pk>\d+)$',
         views.ShowLikers.as_view(), name='show_likers'),
+    url(r'^profile/(?P<slug>[\w-]+)/$',
+        views.ProfileView.as_view(), name='profile'),
 
 )

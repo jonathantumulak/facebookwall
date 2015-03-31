@@ -4,7 +4,7 @@
 
 {% for liker in likers.all %}
 
-<li class="list-group-item">{{ liker.user.first_name }}  {{ liker.user.last_name }}</li>
+<a href="{% url 'wall:profile' liker.user.username %}"><li class="list-group-item">{{ liker.user.first_name }}  {{ liker.user.last_name }}</li></a>
 
 {% endfor %}
 

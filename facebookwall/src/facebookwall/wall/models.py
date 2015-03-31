@@ -7,7 +7,7 @@ from django.contrib.auth.models import User
 
 class Status(models.Model):
     message = models.TextField()
-    user = models.ForeignKey(User, related_name="user")
+    user = models.ForeignKey(User, related_name="status")
     pub_date = models.DateTimeField('date published')
     in_reply_to = models.ForeignKey('self', blank=True,
                                     null=True, default=None,

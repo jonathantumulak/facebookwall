@@ -9,7 +9,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.generic.edit import FormMixin
 from django.utils.decorators import method_decorator
 
-from wall.models import Status, Like
+from wall.models import Status, Like, User
 from wall.forms import StatusForm, PostStatusForm, PostReplyForm, ReplyForm
 
 # Create your views here.
@@ -233,6 +233,19 @@ class StatusDetail(generic.DetailView):
 
     def get_context_data(self, **kwargs):
         context = super(StatusDetail, self).get_context_data(**kwargs)
+        context['user'] = self.request.user
+
+        return context
+
+
+class ProfileView(generic.DetailView):
+    model = User
+    template_name = 'wall/profile.html'
+    context_object_name = 'userinfo'
+    slug_field = 'username'
+
+    def get_context_data(self, **kwargs):
+        context = super(ProfileView, self).get_context_data(**kwargs)
         context['user'] = self.request.user
 
         return context
