@@ -48,9 +48,9 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
 
-ROOT_URLCONF = 'facebook_wall.urls'
+ROOT_URLCONF = 'facebookwall.urls'
 
-WSGI_APPLICATION = 'facebook_wall.wsgi.application'
+WSGI_APPLICATION = 'facebookwall.wsgi.application'
 
 
 # Database
